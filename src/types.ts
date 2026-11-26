@@ -4,6 +4,7 @@ export interface QuestionComment {
   role: 'student' | 'teacher' | 'ai';
   text: string;
   timestamp: string;
+  helpfulBy?: string[];
 }
 
 export interface Question {
@@ -56,6 +57,6 @@ export interface SessionUser {
   id: number;
   username: string;
   displayName: string;
-  role: 'student' | 'teacher';
+  role: 'student' | 'teacher' | 'coordinator';
   course: string;
 }

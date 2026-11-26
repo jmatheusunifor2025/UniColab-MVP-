@@ -47,6 +47,8 @@ export {
   loadAreas,
   loadQuestions,
   loadStudentStats,
+  loadCoordinatorReport,
+  markReplyHelpful,
   signIn,
   signOut,
   startExam,

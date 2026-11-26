@@ -1,5 +1,6 @@
 import { Question, SessionUser, SimulationHistoryItem, UserStats } from '../types';
 import { clearToken, readToken, writeToken } from '../api/client';
+import { buildCoordinatorReport, CoordinatorReport, ReportFilters } from './cycle';
 import { courseLabel, findListed, LISTED_PEOPLE, ListedPerson } from './roster';
 import { seedQuestions } from './questions';
 
@@ -33,6 +34,9 @@ interface DemoState {
     questionIds: string[];
     personal?: boolean;
     ownerEmail?: string;
+    authorEmail?: string;
+    course?: string;
+    period?: string;
   }>;
   nextExamId: number;
   nextAttemptId: number;
@@ -56,6 +60,9 @@ function freshState(): DemoState {
         minutes: 40,
         questionCount: 10,
         questionIds: questions.slice(0, 10).map((question) => question.id),
+        authorEmail: 'helena.duarte@edu.unifor.br',
+        course: 'Análise e Desenvolvimento de Sistemas',
+        period: '2026.1',
       },
     ],
     nextExamId: 2,
@@ -75,11 +82,25 @@ function readState(): DemoState {
     parsed.attempts = parsed.attempts || {};
     parsed.progress = parsed.progress || {};
     const ids = new Set(parsed.questions.map((question) => question.id));
-    const missing = seedQuestions().filter((question) => question.id.startsWith('db-') && !ids.has(question.id));
-    if (missing.length > 0) {
-      parsed.questions = [...parsed.questions, ...missing];
-      writeState(parsed);
+    const seed = seedQuestions();
+    const missing = seed.filter((question) => question.id.startsWith('db-') && !ids.has(question.id));
+    if (missing.length > 0) parsed.questions = [...parsed.questions, ...missing];
+    const byId = new Map(parsed.questions.map((question) => [question.id, question]));
+    seed.forEach((item) => {
+      const current = byId.get(item.id);
+      if (!current) return;
+      if (!current.comments) current.comments = [];
+      item.comments.forEach((comment) => {
+        if (!current.comments.some((saved) => saved.id === comment.id)) current.comments.push(comment);
+      });
+    });
+    const courseExam = parsed.exams.find((exam) => exam.id === '1' && !exam.personal);
+    if (courseExam && !courseExam.authorEmail) {
+      courseExam.authorEmail = 'helena.duarte@edu.unifor.br';
+      courseExam.course = 'Análise e Desenvolvimento de Sistemas';
+      courseExam.period = '2026.1';
     }
+    writeState(parsed);
     return parsed;
   } catch {
     return freshState();
@@ -101,7 +122,7 @@ function toSession(person: ListedPerson): SessionUser {
     id: person.id,
     username: person.email,
     displayName: person.name,
-    role: person.role === 'teacher' ? 'teacher' : 'student',
+    role: person.role,
     course: courseLabel(person),
   };
 }
@@ -237,6 +258,7 @@ export async function deleteQuestion(id: number) {
 export async function addComment(questionId: string, mensagem: string) {
   const person = personFromToken();
   if (!person) throw new Error('Entre para comentar.');
+  if (person.role === 'coordinator') throw new Error('A coordenação acompanha o fórum pelo relatório e não publica nele.');
   const text = mensagem.trim();
   if (!text) throw new Error('Escreva a dúvida antes de publicar.');
   const state = readState();
@@ -446,9 +468,32 @@ export async function createExam(title: string, minutes: number, questionIds: st
     minutes,
     questionCount: questionIds.length,
     questionIds,
+    authorEmail: person.email,
+    course: person.course,
+    period: '2026.1',
   };
   state.nextExamId += 1;
   state.exams.unshift(exam);
   writeState(state);
   return exam;
+}
+
+export async function markReplyHelpful(questionId: string, commentId: string) {
+  const person = personFromToken();
+  if (!person || person.role !== 'student') throw new Error('Só o estudante registra se a resposta ajudou.');
+  const state = readState();
+  const question = state.questions.find((item) => item.id === questionId);
+  const comment = question?.comments.find((item) => item.id === commentId);
+  if (!question || !comment || comment.role !== 'teacher') throw new Error('Resposta docente não encontrada.');
+  const marked = new Set(comment.helpfulBy || []);
+  marked.add(person.email);
+  comment.helpfulBy = Array.from(marked);
+  writeState(state);
+}
+
+export async function loadCoordinatorReport(filters: ReportFilters): Promise<CoordinatorReport> {
+  const person = personFromToken();
+  if (!person || person.role !== 'coordinator') throw new Error('Acesso restrito à Coordenação de Curso.');
+  const state = readState();
+  return buildCoordinatorReport(state.questions, state.exams, state.progress, LISTED_PEOPLE, filters);
 }
