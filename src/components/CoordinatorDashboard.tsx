@@ -44,6 +44,8 @@ export default function CoordinatorDashboard({ displayName, homeCourse, tab }: C
         setReport(next);
         setError('');
         if (area && !next.areaOptions.includes(area)) setArea('');
+        if (next.courseOptions.length === 1 && course !== next.courseOptions[0]) setCourse(next.courseOptions[0]);
+        else if (course && !next.courseOptions.includes(course)) setCourse('');
       })
       .catch((err: unknown) => {
         if (!active) return;
@@ -61,7 +63,7 @@ export default function CoordinatorDashboard({ displayName, homeCourse, tab }: C
     const lines = [
       'UniColab — resumo da coordenação',
       `Curso vinculado: ${homeCourse}`,
-      `Recorte: ${course || 'todos os cursos'} · ${area || 'todas as competências'} · ${period}`,
+      `Recorte: ${course || (report.courseOptions.length > 1 ? 'todos os cursos da coordenação' : report.courseOptions[0] || 'curso da coordenação')} · ${area || 'todas as competências'} · ${period}`,
       'Sem nota individual, sem ranking de docentes e sem sanção.',
       '',
       `Concluintes na lista: ${report.studentsOnList}`,
@@ -107,7 +109,7 @@ export default function CoordinatorDashboard({ displayName, homeCourse, tab }: C
 
       <div className="grid gap-3 md:grid-cols-3">
         <Filter label="Curso" value={course} onChange={setCourse}>
-          <option value="">Todos os cursos do ciclo</option>
+          {report.courseOptions.length > 1 && <option value="">Todos os cursos da coordenação</option>}
           {report.courseOptions.map((option) => <option key={option} value={option}>{option}</option>)}
         </Filter>
         <Filter label="Competência" value={area} onChange={setArea}>
@@ -211,7 +213,7 @@ export default function CoordinatorDashboard({ displayName, homeCourse, tab }: C
                 </div>
                 <p className="text-xs text-slate-400">{period}</p>
               </div>
-              <dl className="mt-4 grid gap-3 sm:grid-cols-4">
+              <dl className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
                 <Count label="Questões na área" value={teacher.questions} />
                 <Count label="Simulados criados" value={teacher.exams} />
                 <Count label="Respostas no fórum" value={teacher.forumReplies} />

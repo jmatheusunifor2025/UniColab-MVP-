@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Eye, EyeOff, Lock, Mail, UserRound, Sparkles, Check, ArrowRight, AlertCircle } from 'lucide-react';
 import { SessionUser } from '../types';
 import { accountHasPassword, activateAccount, signIn } from '../api/unicolab';
-import { findListed, LISTED_PEOPLE, ListedPerson } from '../demo/roster';
+import { findListed, LISTED_PEOPLE, ListedPerson, personCourses } from '../demo/roster';
 
 interface LoginProps {
   onLogin: (user: SessionUser, persist: boolean) => void;
@@ -381,7 +381,7 @@ export default function Login({ onLogin }: LoginProps) {
                 <p className="mt-2 text-sm text-slate-500">A conta já está reservada. Escolha a senha deste e-mail.</p>
                 <div className="mt-5 rounded-xl border border-line bg-white px-3 py-3 text-sm">
                   <p className="font-semibold">{person.name}</p>
-                  <p className="text-slate-500">{person.course}</p>
+                  <p className="text-slate-500">{personCourses(person).join(' · ')}</p>
                   {person.specialty && <p className="text-slate-500">{person.specialty}</p>}
                   <p className="mt-1 break-all text-slate-400">{person.email}</p>
                 </div>
@@ -502,7 +502,7 @@ function Group({ title, people, onPick }: { title: string; people: ListedPerson[
             <button type="button" className="break-all text-left text-brand" onClick={() => onPick(person.email)}>
               {person.email}
             </button>
-            <span className="text-slate-400"> · {person.course}{person.specialty ? ` · ${person.specialty}` : ''} · {accountHasPassword(person.email) ? 'senha já criada' : 'sem senha'}</span>
+            <span className="text-slate-400"> · {personCourses(person).join(' · ')}{person.specialty ? ` · ${person.specialty}` : ''} · {accountHasPassword(person.email) ? 'senha já criada' : 'sem senha'}</span>
           </li>
         ))}
       </ul>

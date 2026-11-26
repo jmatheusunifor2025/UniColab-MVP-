@@ -4,6 +4,8 @@ export interface ListedPerson {
   name: string;
   role: 'student' | 'teacher' | 'coordinator';
   course: string;
+  /** Cursos que a coordenação acompanha. Aluno e professor usam só `course`. */
+  courses?: string[];
   specialty?: string;
   enrollment: string;
   verificationCode: string;
@@ -119,7 +121,8 @@ export const LISTED_PEOPLE: ListedPerson[] = [
     email: 'lucia.ferreira@edu.unifor.br',
     name: 'Lúcia Ferreira',
     role: 'coordinator',
-    course: 'Análise e Desenvolvimento de Sistemas',
+    course: 'Engenharia da Computação',
+    courses: ['Engenharia da Computação'],
     specialty: 'Coordenação de curso',
     enrollment: 'COORD-1840',
     verificationCode: 'H6K3WN',
@@ -130,14 +133,20 @@ export const LISTED_PEOPLE: ListedPerson[] = [
     name: 'Paulo Mendes',
     role: 'coordinator',
     course: 'Ciência da Computação',
+    courses: ['Ciência da Computação', 'Análise e Desenvolvimento de Sistemas'],
     specialty: 'Coordenação de curso',
     enrollment: 'COORD-1902',
     verificationCode: 'C2K9RD',
   },
 ];
 
+export function personCourses(person: ListedPerson) {
+  return person.courses?.length ? person.courses : [person.course];
+}
+
 export function courseLabel(person: ListedPerson) {
-  return person.specialty ? `${person.course} · ${person.specialty}` : person.course;
+  const names = personCourses(person).join(' · ');
+  return person.specialty ? `${names} · ${person.specialty}` : names;
 }
 
 export function findListed(email: string) {

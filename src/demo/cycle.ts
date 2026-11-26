@@ -81,6 +81,11 @@ export interface ReportFilters {
   period: string;
 }
 
+interface ScopedReportFilters extends ReportFilters {
+  /** Cursos da coordenação logada. O relatório não sai desse conjunto. */
+  allowedCourses: string[];
+}
+
 export interface CompetencyRow {
   area: string;
   answered: number;
@@ -138,7 +143,8 @@ interface ProgressRecord {
 
 const CURATED_AREAS = new Set(Object.values(CURATION).flat());
 
-function courseMatch(course: string, filter: string) {
+function courseMatch(course: string, filter: string, allowed: readonly string[]) {
+  if (!allowed.includes(course)) return false;
   return !filter || course === filter;
 }
 
@@ -163,10 +169,11 @@ function awaitsTeacher(question: Question) {
   return human[human.length - 1].role === 'student';
 }
 
-function inCourseScope(area: string, course: string, teachers: ListedPerson[]) {
-  if (!course) return true;
-  if (!CURATED_AREAS.has(area)) return true;
-  return teachers.some((teacher) => teacher.course === course && teacherForArea(teacher.email, area));
+function inCourseScope(area: string, course: string, teachers: ListedPerson[], allowed: readonly string[], period: string) {
+  if (!CURATED_AREAS.has(area)) {
+    return CLOSED_SLICES.some((slice) => slice.period === period && slice.area === area && courseMatch(slice.course, course, allowed));
+  }
+  return teachers.some((teacher) => courseMatch(teacher.course, course, allowed) && teacherForArea(teacher.email, area));
 }
 
 export function buildCoordinatorReport(
@@ -174,17 +181,19 @@ export function buildCoordinatorReport(
   exams: ExamRecord[],
   progress: Record<string, ProgressRecord>,
   people: ListedPerson[],
-  filters: ReportFilters,
+  filters: ScopedReportFilters,
 ): CoordinatorReport {
+  const allowed = filters.allowedCourses;
+  const courseFilter = filters.course && allowed.includes(filters.course) ? filters.course : '';
   const teachers = people.filter((person) => person.role === 'teacher');
-  const students = people.filter((person) => person.role === 'student' && courseMatch(person.course, filters.course));
+  const students = people.filter((person) => person.role === 'student' && courseMatch(person.course, courseFilter, allowed));
   const visibleTeachers = teachers
-    .filter((teacher) => courseMatch(teacher.course, filters.course))
+    .filter((teacher) => courseMatch(teacher.course, courseFilter, allowed))
     .sort((left, right) => left.name.localeCompare(right.name, 'pt-BR'));
 
   const slices = CLOSED_SLICES.filter((slice) => (
     slice.period === filters.period
-    && courseMatch(slice.course, filters.course)
+    && courseMatch(slice.course, courseFilter, allowed)
     && areaMatch(slice.area, filters.area)
   ));
 
@@ -197,7 +206,7 @@ export function buildCoordinatorReport(
   });
 
   let finishedAttempts = CLOSED_SITTINGS
-    .filter((sitting) => sitting.period === filters.period && courseMatch(sitting.course, filters.course))
+    .filter((sitting) => sitting.period === filters.period && courseMatch(sitting.course, courseFilter, allowed))
     .reduce((sum, sitting) => sum + sitting.attempts, 0);
 
   if (filters.period === '2026.1') {
@@ -206,7 +215,7 @@ export function buildCoordinatorReport(
       if (!record) return;
       finishedAttempts += record.history.length;
       Object.entries(record.byArea).forEach(([area, stats]) => {
-        if (!areaMatch(area, filters.area) || !inCourseScope(area, filters.course, teachers)) return;
+        if (!areaMatch(area, filters.area) || !inCourseScope(area, courseFilter, teachers, allowed, filters.period)) return;
         const current = totals.get(area) || { answered: 0, wrong: 0 };
         current.answered += stats.total;
         current.wrong += Math.max(0, stats.total - stats.correct);
@@ -218,7 +227,7 @@ export function buildCoordinatorReport(
   const openQuestions = questions.filter((question) => (
     awaitsTeacher(question)
     && areaMatch(question.area, filters.area)
-    && inCourseScope(question.area, filters.course, teachers)
+    && inCourseScope(question.area, courseFilter, teachers, allowed, filters.period)
   ));
   const openByArea = new Map<string, { count: number; sample: string }>();
   openQuestions.forEach((question) => {
@@ -247,7 +256,7 @@ export function buildCoordinatorReport(
     .sort((left, right) => right.openDoubts - left.openDoubts || left.area.localeCompare(right.area, 'pt-BR'));
 
   const scopedQuestions = questions.filter((question) => (
-    areaMatch(question.area, filters.area) && inCourseScope(question.area, filters.course, teachers)
+    areaMatch(question.area, filters.area) && inCourseScope(question.area, courseFilter, teachers, allowed, filters.period)
   ));
   const teacherReplies = scopedQuestions.reduce(
     (total, question) => total + question.comments.filter((comment) => comment.role === 'teacher').length,
@@ -273,12 +282,12 @@ export function buildCoordinatorReport(
       !exam.personal
       && exam.authorEmail === teacher.email
       && exam.period === filters.period
-      && courseMatch(exam.course || teacher.course, filters.course)
+      && courseMatch(exam.course || teacher.course, courseFilter, allowed)
     )).length;
     const closedExams = CLOSED_EXAMS.filter((exam) => (
       exam.authorEmail === teacher.email
       && exam.period === filters.period
-      && courseMatch(exam.course, filters.course)
+      && courseMatch(exam.course, courseFilter, allowed)
     )).length;
     return {
       name: teacher.name,
@@ -295,8 +304,8 @@ export function buildCoordinatorReport(
   const answered = competencies.reduce((sum, row) => sum + row.answered, 0);
   const wrong = competencies.reduce((sum, row) => sum + row.wrong, 0);
   const areaOptions = Array.from(new Set([
-    ...CLOSED_SLICES.filter((slice) => slice.period === filters.period && courseMatch(slice.course, filters.course)).map((slice) => slice.area),
-    ...questions.filter((question) => inCourseScope(question.area, filters.course, teachers)).map((question) => question.area),
+    ...CLOSED_SLICES.filter((slice) => slice.period === filters.period && courseMatch(slice.course, courseFilter, allowed)).map((slice) => slice.area),
+    ...questions.filter((question) => inCourseScope(question.area, courseFilter, teachers, allowed, filters.period)).map((question) => question.area),
   ])).sort((left, right) => left.localeCompare(right, 'pt-BR'));
 
   return {
@@ -311,7 +320,7 @@ export function buildCoordinatorReport(
     competencies,
     themes,
     teachers: teacherRows,
-    courseOptions: Array.from(new Set(people.filter((person) => person.role !== 'coordinator').map((person) => person.course))).sort((left, right) => left.localeCompare(right, 'pt-BR')),
+    courseOptions: [...allowed].sort((left, right) => left.localeCompare(right, 'pt-BR')),
     areaOptions,
   };
 }

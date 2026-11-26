@@ -1,7 +1,7 @@
 import { Question, SessionUser, SimulationHistoryItem, UserStats } from '../types';
 import { clearToken, readToken, writeToken } from '../api/client';
 import { buildCoordinatorReport, CoordinatorReport, ReportFilters } from './cycle';
-import { courseLabel, findListed, LISTED_PEOPLE, ListedPerson } from './roster';
+import { courseLabel, findListed, LISTED_PEOPLE, ListedPerson, personCourses } from './roster';
 import { seedQuestions } from './questions';
 
 const STATE_KEY = 'unicolab_mvp_state';
@@ -494,6 +494,12 @@ export async function markReplyHelpful(questionId: string, commentId: string) {
 export async function loadCoordinatorReport(filters: ReportFilters): Promise<CoordinatorReport> {
   const person = personFromToken();
   if (!person || person.role !== 'coordinator') throw new Error('Acesso restrito à Coordenação de Curso.');
+  const allowed = personCourses(person);
+  const course = filters.course && allowed.includes(filters.course) ? filters.course : '';
   const state = readState();
-  return buildCoordinatorReport(state.questions, state.exams, state.progress, LISTED_PEOPLE, filters);
+  return buildCoordinatorReport(state.questions, state.exams, state.progress, LISTED_PEOPLE, {
+    ...filters,
+    course,
+    allowedCourses: allowed,
+  });
 }
