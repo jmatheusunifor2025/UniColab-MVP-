@@ -1,0 +1,12 @@
+Códigos de verificação do primeiro acesso — UniColab
+Cada código vale só para o e-mail correspondente. A tela não mostra o código.
+
+Alunos
+Ana Costa        ana.costa@edu.unifor.br       K7P2MQ
+Bruno Lima       bruno.lima@edu.unifor.br      R4N8WL
+Carla Mendes     carla.mendes@edu.unifor.br    Q3H6VT
+
+Professores
+Helena Duarte    helena.duarte@edu.unifor.br   M2C9PX
+Ricardo Nunes    ricardo.nunes@edu.unifor.br   N5B1YK
+Marina Alves     marina.alves@edu.unifor.br    T8D4JQ
