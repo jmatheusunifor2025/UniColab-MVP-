@@ -67,6 +67,15 @@ export const LISTED_PEOPLE: ListedPerson[] = [
     verificationCode: 'F3B7LN',
   },
   {
+    id: 14,
+    email: 'renata.vieira@edu.unifor.br',
+    name: 'Renata Vieira',
+    role: 'student',
+    course: 'Engenharia da Computação',
+    enrollment: '20241148',
+    verificationCode: 'V6H2LD',
+  },
+  {
     id: 4,
     email: 'helena.duarte@edu.unifor.br',
     name: 'Helena Duarte',

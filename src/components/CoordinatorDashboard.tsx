@@ -98,7 +98,7 @@ export default function CoordinatorDashboard({ displayName, homeCourse, tab }: C
           </p>
           <h1 className="mt-1 text-3xl font-extrabold tracking-tight">Olá, {displayName}</h1>
           <p className="mt-1 max-w-2xl text-sm text-slate-500">
-            {homeCourse}. O painel reúne o erro agregado da turma e o extrato de contribuição dos professores, para orientar o reforço antes do ENADE.
+            {homeCourse}. O painel reúne o erro agregado da turma e o extrato de contribuição dos professores, para orientar o reforço antes do ENADE. Alunos e professores exibidos são somente dos cursos desta coordenação.
           </p>
         </div>
         <button type="button" onClick={exportSummary} className="inline-flex h-11 items-center gap-2 rounded-xl border border-line bg-white px-4 text-sm font-semibold hover:bg-canvas">
@@ -124,7 +124,7 @@ export default function CoordinatorDashboard({ displayName, homeCourse, tab }: C
       {error && <p className="rounded-xl bg-rose-50 px-3 py-2 text-sm text-rose-800">{error}</p>}
 
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <Metric label="Concluintes na lista" value={String(report.studentsOnList)} hint="Contagem da lista institucional" />
+        <Metric label="Concluintes na lista" value={String(report.studentsOnList)} hint="Alunos dos cursos desta coordenação" />
         <Metric label="Tentativas encerradas" value={String(report.finishedAttempts)} hint="Somente simulados já finalizados" />
         <Metric label="Erro agregado" value={report.errorPercent === null ? '—' : `${report.errorPercent}%`} hint="Percentual do recorte, sem nota individual" />
         <Metric

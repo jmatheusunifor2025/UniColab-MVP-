@@ -227,7 +227,7 @@ export function buildCoordinatorReport(
   const openQuestions = questions.filter((question) => (
     awaitsTeacher(question)
     && areaMatch(question.area, filters.area)
-    && inCourseScope(question.area, courseFilter, teachers, allowed, filters.period)
+    && Boolean(questionCurator(question, visibleTeachers))
   ));
   const openByArea = new Map<string, { count: number; sample: string }>();
   openQuestions.forEach((question) => {
@@ -258,8 +258,9 @@ export function buildCoordinatorReport(
   const scopedQuestions = questions.filter((question) => (
     areaMatch(question.area, filters.area) && inCourseScope(question.area, courseFilter, teachers, allowed, filters.period)
   ));
+  const teacherNames = new Set(visibleTeachers.map((teacher) => teacher.name));
   const teacherReplies = scopedQuestions.reduce(
-    (total, question) => total + question.comments.filter((comment) => comment.role === 'teacher').length,
+    (total, question) => total + question.comments.filter((comment) => comment.role === 'teacher' && teacherNames.has(comment.userName)).length,
     0,
   );
 
@@ -267,7 +268,7 @@ export function buildCoordinatorReport(
     const areas = (CURATION[teacher.email] || []).filter((area) => areaMatch(area, filters.area));
     const questionsInCare = questions.filter((question) => {
       if (!areaMatch(question.area, filters.area)) return false;
-      const curator = questionCurator(question, teachers);
+      const curator = questionCurator(question, visibleTeachers);
       return curator?.email === teacher.email;
     });
     const replies = questionsInCare.reduce((total, question) => (
