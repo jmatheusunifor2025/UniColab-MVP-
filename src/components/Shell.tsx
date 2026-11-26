@@ -101,16 +101,14 @@ export function StudentShell({
                 </div>
               )}
             </div>
-            <div className="hidden items-center gap-2 sm:flex">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand text-xs font-bold text-white">{initials}</div>
-              <div className="leading-tight">
-                <p className="text-sm font-semibold">{user.displayName}</p>
-                <p className="text-[11px] text-slate-400">{user.course}</p>
+            <div className="hidden min-w-0 items-center gap-2 sm:flex">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-bold text-white">{initials}</div>
+              <div className="min-w-0 leading-tight">
+                <p className="truncate text-sm font-semibold">{user.displayName}</p>
+                <p className="hidden truncate text-[11px] text-slate-400 lg:block">{user.course}</p>
               </div>
             </div>
-            <button type="button" onClick={onLogout} aria-label="Sair" className="hidden rounded-full p-2 text-slate-500 hover:bg-canvas sm:inline-flex">
-              <LogOut className="h-4 w-4" />
-            </button>
+            <SignOutButton onClick={onLogout} />
             <button type="button" className="rounded-lg p-2 lg:hidden" aria-label={open ? 'Fechar menu' : 'Abrir menu'} onClick={() => setOpen((value) => !value)}>
               {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
@@ -128,10 +126,7 @@ export function StudentShell({
                 </button>
               );
             })}
-            <button type="button" onClick={onLogout} className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-rose-600">
-              <LogOut className="h-4 w-4" />
-              Sair
-            </button>
+            <SignOutButton onClick={onLogout} block />
           </div>
         )}
       </header>
@@ -170,9 +165,9 @@ export function TeacherShell({
 
   const nav = (
     <div className="flex h-full flex-col">
-      <div className="px-4 pt-5">
-        <Brand />
-        <p className="mt-6 px-2 text-[11px] font-semibold tracking-wide text-slate-400">Espaço do professor</p>
+      <div className="px-4 pt-4 lg:pt-5">
+        <div className="hidden lg:block"><Brand /></div>
+        <p className="px-2 text-[11px] font-semibold tracking-wide text-slate-400 lg:mt-6">Espaço do professor</p>
       </div>
       <nav className="mt-2 flex-1 space-y-1 px-3">
         {TEACHER_ITEMS.map((item) => {
@@ -191,6 +186,7 @@ export function TeacherShell({
             </button>
           );
         })}
+        <SignOutButton onClick={onLogout} block navItem />
       </nav>
       <div className="space-y-3 p-4">
         <button type="button" onClick={() => { onNavigate('forum'); setOpen(false); }} className="w-full rounded-2xl bg-canvas p-3 text-left">
@@ -204,9 +200,6 @@ export function TeacherShell({
             <p className="truncate text-sm font-semibold">{user.displayName}</p>
             <p className="text-xs text-slate-400">Professor</p>
           </div>
-          <button type="button" onClick={onLogout} aria-label="Sair" className="rounded-lg p-2 text-slate-400 hover:bg-canvas hover:text-rose-600">
-            <LogOut className="h-4 w-4" />
-          </button>
         </div>
       </div>
     </div>
@@ -214,13 +207,16 @@ export function TeacherShell({
 
   return (
     <div className="min-h-screen bg-canvas text-ink lg:grid lg:grid-cols-[250px_1fr]">
-      <aside className="sticky top-0 hidden h-screen border-r border-line bg-white lg:block">{nav}</aside>
+      <aside className="sticky top-0 hidden h-screen self-start overflow-y-auto border-r border-line bg-white lg:block">{nav}</aside>
       <div className="min-w-0">
-        <div className="flex items-center justify-between border-b border-line bg-white px-4 py-3 lg:hidden">
+        <div className="flex items-center justify-between gap-3 border-b border-line bg-white px-4 py-3 lg:hidden">
           <Brand />
-          <button type="button" aria-label={open ? 'Fechar menu' : 'Abrir menu'} onClick={() => setOpen((value) => !value)} className="rounded-lg p-2">
-            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
+          <div className="flex items-center gap-1">
+            <SignOutButton onClick={onLogout} />
+            <button type="button" aria-label={open ? 'Fechar menu' : 'Abrir menu'} onClick={() => setOpen((value) => !value)} className="rounded-lg p-2">
+              {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          </div>
         </div>
         {open && <div className="border-b border-line bg-white lg:hidden">{nav}</div>}
         <main className="mx-auto w-full max-w-6xl px-4 py-6 md:px-6 md:py-8">{children}</main>
@@ -255,9 +251,9 @@ export function CoordinatorShell({
 
   const nav = (
     <div className="flex h-full flex-col">
-      <div className="px-4 pt-5">
-        <Brand />
-        <p className="mt-6 px-2 text-[11px] font-semibold tracking-wide text-slate-400">Coordenação de curso</p>
+      <div className="px-4 pt-4 lg:pt-5">
+        <div className="hidden lg:block"><Brand /></div>
+        <p className="px-2 text-[11px] font-semibold tracking-wide text-slate-400 lg:mt-6">Coordenação de curso</p>
       </div>
       <nav className="mt-2 flex-1 space-y-1 px-3">
         {COORDINATOR_ITEMS.map((item) => {
@@ -276,6 +272,7 @@ export function CoordinatorShell({
             </button>
           );
         })}
+        <SignOutButton onClick={onLogout} block navItem />
       </nav>
       <div className="space-y-3 p-4">
         <div className="rounded-2xl bg-canvas p-3">
@@ -288,9 +285,6 @@ export function CoordinatorShell({
             <p className="truncate text-sm font-semibold">{user.displayName}</p>
             <p className="text-xs text-slate-400">Coordenação</p>
           </div>
-          <button type="button" onClick={onLogout} aria-label="Sair" className="rounded-lg p-2 text-slate-400 hover:bg-canvas hover:text-rose-600">
-            <LogOut className="h-4 w-4" />
-          </button>
         </div>
       </div>
     </div>
@@ -298,19 +292,36 @@ export function CoordinatorShell({
 
   return (
     <div className="min-h-screen bg-canvas text-ink lg:grid lg:grid-cols-[250px_1fr]">
-      <aside className="sticky top-0 hidden h-screen border-r border-line bg-white lg:block">{nav}</aside>
+      <aside className="sticky top-0 hidden h-screen self-start overflow-y-auto border-r border-line bg-white lg:block">{nav}</aside>
       <div className="min-w-0">
-        <div className="flex items-center justify-between border-b border-line bg-white px-4 py-3 lg:hidden">
+        <div className="flex items-center justify-between gap-3 border-b border-line bg-white px-4 py-3 lg:hidden">
           <Brand />
-          <button type="button" aria-label={open ? 'Fechar menu' : 'Abrir menu'} onClick={() => setOpen((value) => !value)} className="rounded-lg p-2">
-            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
+          <div className="flex items-center gap-1">
+            <SignOutButton onClick={onLogout} />
+            <button type="button" aria-label={open ? 'Fechar menu' : 'Abrir menu'} onClick={() => setOpen((value) => !value)} className="rounded-lg p-2">
+              {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          </div>
         </div>
         {open && <div className="border-b border-line bg-white lg:hidden">{nav}</div>}
         <main className="mx-auto w-full max-w-6xl px-4 py-6 md:px-6 md:py-8">{children}</main>
         <SiteFooter compact />
       </div>
     </div>
+  );
+}
+
+function SignOutButton({ onClick, block = false, navItem = false }: { onClick: () => void; block?: boolean; navItem?: boolean }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`${block ? 'flex w-full' : 'inline-flex'} items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold text-rose-700 hover:bg-rose-50`}
+    >
+      {navItem && <span className="h-5 w-0.5 rounded-full bg-transparent" />}
+      <LogOut className="h-4 w-4" />
+      Sair
+    </button>
   );
 }
 
