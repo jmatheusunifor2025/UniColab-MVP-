@@ -8,9 +8,11 @@ interface ForumProps {
   authorName: string;
   authorRole: 'student' | 'teacher';
   onAddComment: (qId: string, author: string, role: 'student' | 'teacher', commentText: string, askAi: boolean) => Promise<void>;
+  onMarkHelpful?: (questionId: string, commentId: string) => Promise<void>;
+  viewerEmail?: string;
 }
 
-export default function Forum({ questions, activeQuestion, authorName, authorRole, onAddComment }: ForumProps) {
+export default function Forum({ questions, activeQuestion, authorName, authorRole, onAddComment, onMarkHelpful, viewerEmail }: ForumProps) {
   const [selectedQId, setSelectedQId] = useState<string>(activeQuestion?.id || questions[0]?.id || '');
   const [query, setQuery] = useState('');
   const [newCommentText, setNewCommentText] = useState('');
@@ -170,6 +172,20 @@ export default function Forum({ questions, activeQuestion, authorName, authorRol
                               </div>
                             </div>
                             <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-700">{comment.text}</p>
+                            {teacher && (comment.helpfulBy?.length || 0) > 0 && (
+                              <p className="mt-2 text-xs text-emerald-700">
+                                {comment.helpfulBy?.length} {comment.helpfulBy?.length === 1 ? 'estudante marcou' : 'estudantes marcaram'} que a resposta ajudou
+                              </p>
+                            )}
+                            {teacher && authorRole === 'student' && onMarkHelpful && viewerEmail && !comment.helpfulBy?.includes(viewerEmail) && (
+                              <button
+                                type="button"
+                                className="mt-2 text-xs font-semibold text-brand"
+                                onClick={() => { void onMarkHelpful(selectedQuestion.id, comment.id); }}
+                              >
+                                A resposta ajudou
+                              </button>
+                            )}
                           </div>
                         </div>
                       </article>

@@ -12,6 +12,7 @@ import {
   Settings,
   Sparkles,
   Trophy,
+  Users,
   X,
 } from 'lucide-react';
 
@@ -202,6 +203,90 @@ export function TeacherShell({
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold">{user.displayName}</p>
             <p className="text-xs text-slate-400">Professor</p>
+          </div>
+          <button type="button" onClick={onLogout} aria-label="Sair" className="rounded-lg p-2 text-slate-400 hover:bg-canvas hover:text-rose-600">
+            <LogOut className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-canvas text-ink lg:grid lg:grid-cols-[250px_1fr]">
+      <aside className="sticky top-0 hidden h-screen border-r border-line bg-white lg:block">{nav}</aside>
+      <div className="min-w-0">
+        <div className="flex items-center justify-between border-b border-line bg-white px-4 py-3 lg:hidden">
+          <Brand />
+          <button type="button" aria-label={open ? 'Fechar menu' : 'Abrir menu'} onClick={() => setOpen((value) => !value)} className="rounded-lg p-2">
+            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
+        {open && <div className="border-b border-line bg-white lg:hidden">{nav}</div>}
+        <main className="mx-auto w-full max-w-6xl px-4 py-6 md:px-6 md:py-8">{children}</main>
+        <SiteFooter compact />
+      </div>
+    </div>
+  );
+}
+
+type CoordinatorTab = 'turma' | 'docentes';
+
+const COORDINATOR_ITEMS: Array<{ id: CoordinatorTab; label: string; icon: typeof LayoutDashboard }> = [
+  { id: 'turma', label: 'Relatório da turma', icon: LayoutDashboard },
+  { id: 'docentes', label: 'Participação docente', icon: Users },
+];
+
+export function CoordinatorShell({
+  user,
+  activeTab,
+  onNavigate,
+  onLogout,
+  children,
+}: {
+  user: SessionUser;
+  activeTab: CoordinatorTab;
+  onNavigate: (tab: CoordinatorTab) => void;
+  onLogout: () => void;
+  children: ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  const initials = user.displayName.split(' ').map((part) => part[0]).slice(0, 2).join('').toUpperCase();
+
+  const nav = (
+    <div className="flex h-full flex-col">
+      <div className="px-4 pt-5">
+        <Brand />
+        <p className="mt-6 px-2 text-[11px] font-semibold tracking-wide text-slate-400">Coordenação de curso</p>
+      </div>
+      <nav className="mt-2 flex-1 space-y-1 px-3">
+        {COORDINATOR_ITEMS.map((item) => {
+          const Icon = item.icon;
+          const selected = activeTab === item.id;
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => { onNavigate(item.id); setOpen(false); }}
+              className={`flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium ${selected ? 'bg-[#eef0ff] text-brand' : 'text-slate-600 hover:bg-canvas'}`}
+            >
+              <span className={`h-5 w-0.5 rounded-full ${selected ? 'bg-brand' : 'bg-transparent'}`} />
+              <Icon className="h-4 w-4" />
+              {item.label}
+            </button>
+          );
+        })}
+      </nav>
+      <div className="space-y-3 p-4">
+        <div className="rounded-2xl bg-canvas p-3">
+          <p className="text-sm font-semibold">Privacidade da turma</p>
+          <p className="mt-1 text-xs text-slate-500">O relatório mostra percentuais e contagens. A nota de cada estudante não entra.</p>
+        </div>
+        <div className="flex items-center gap-2 border-t border-line pt-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#eef0ff] text-xs font-bold text-brand">{initials}</div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-semibold">{user.displayName}</p>
+            <p className="text-xs text-slate-400">Coordenação</p>
           </div>
           <button type="button" onClick={onLogout} aria-label="Sair" className="rounded-lg p-2 text-slate-400 hover:bg-canvas hover:text-rose-600">
             <LogOut className="h-4 w-4" />

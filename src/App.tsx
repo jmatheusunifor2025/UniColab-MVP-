@@ -6,11 +6,12 @@ import Simulation from './components/Simulation';
 import Forum from './components/Forum';
 import TeacherArea from './components/TeacherArea';
 import TeacherDashboard from './components/TeacherDashboard';
+import CoordinatorDashboard from './components/CoordinatorDashboard';
 import TrilhaIA from './components/TrilhaIA';
 import Login from './components/Login';
 import ExamsLists from './components/ExamsLists';
 import SettingsPanel from './components/SettingsPanel';
-import { StudentShell, TeacherShell } from './components/Shell';
+import { CoordinatorShell, StudentShell, TeacherShell } from './components/Shell';
 import { readToken } from './api/client';
 import {
   addComment,
@@ -23,6 +24,7 @@ import {
   deleteQuestion,
   loadQuestions,
   loadStudentStats,
+  markReplyHelpful,
   createPersonalExam,
   RemoteExam,
   signOut,
@@ -31,7 +33,19 @@ import {
   submitExam,
 } from './api/unicolab';
 
-type AppTab = 'dashboard' | 'banco' | 'forum' | 'professor' | 'trilha' | 'painel' | 'provas' | 'config';
+type AppTab = 'dashboard' | 'banco' | 'forum' | 'professor' | 'trilha' | 'painel' | 'provas' | 'config' | 'turma' | 'docentes';
+
+function sessionRole(role: unknown): SessionUser['role'] {
+  if (role === 'teacher') return 'teacher';
+  if (role === 'coordinator') return 'coordinator';
+  return 'student';
+}
+
+function homeFor(role: SessionUser['role']): AppTab {
+  if (role === 'teacher') return 'painel';
+  if (role === 'coordinator') return 'turma';
+  return 'dashboard';
+}
 
 const EMPTY_STATS: UserStats = {
   points: 0,
@@ -52,7 +66,7 @@ function readSession(): SessionUser | null {
       id: Number(parsed.id) || 0,
       username: parsed.username,
       displayName: parsed.displayName,
-      role: parsed.role === 'teacher' ? 'teacher' : 'student',
+      role: sessionRole(parsed.role),
       course: parsed.course || '',
     };
   } catch {
@@ -62,7 +76,7 @@ function readSession(): SessionUser | null {
 
 export default function App() {
   const [loggedInUser, setLoggedInUser] = useState<SessionUser | null>(() => (readToken() ? readSession() : null));
-  const [activeTab, setActiveTab] = useState<AppTab>(() => (readSession()?.role === 'teacher' ? 'painel' : 'dashboard'));
+  const [activeTab, setActiveTab] = useState<AppTab>(() => homeFor(readSession()?.role || 'student'));
   const [questions, setQuestions] = useState<Question[]>([]);
   const [areaNames, setAreaNames] = useState<string[]>([]);
   const [loadError, setLoadError] = useState('');
@@ -85,7 +99,7 @@ export default function App() {
     const store = persist ? localStorage : sessionStorage;
     store.setItem('unicolab_session', JSON.stringify(user));
     setLoggedInUser(user);
-    setActiveTab(user.role === 'teacher' ? 'painel' : 'dashboard');
+    setActiveTab(homeFor(user.role));
     setActiveSimQuestions(null);
     setExamRun(null);
     setStudentExams([]);
@@ -160,9 +174,11 @@ export default function App() {
     if (!loggedInUser) return;
     const allowed: AppTab[] = loggedInUser.role === 'teacher'
       ? ['painel', 'banco', 'forum', 'professor', 'provas', 'config']
-      : ['dashboard', 'banco', 'forum', 'trilha'];
+      : loggedInUser.role === 'coordinator'
+        ? ['turma', 'docentes']
+        : ['dashboard', 'banco', 'forum', 'trilha'];
     if (!allowed.includes(activeTab)) {
-      setActiveTab(loggedInUser.role === 'teacher' ? 'painel' : 'dashboard');
+      setActiveTab(homeFor(loggedInUser.role));
     }
   }, [loggedInUser, activeTab]);
 
@@ -334,6 +350,11 @@ export default function App() {
           authorName={loggedInUser.displayName}
           authorRole="student"
           onAddComment={handleAddForumComment}
+          viewerEmail={loggedInUser.username}
+          onMarkHelpful={async (questionId, commentId) => {
+            await markReplyHelpful(questionId, commentId);
+            setQuestions(await loadQuestions());
+          }}
         />
       )}
       {activeTab === 'trilha' && (
@@ -348,6 +369,25 @@ export default function App() {
       )}
     </>
   );
+
+  if (loggedInUser.role === 'coordinator') {
+    const coordinatorTab = activeTab === 'docentes' ? 'docentes' : 'turma';
+    return (
+      <CoordinatorShell
+        user={loggedInUser}
+        activeTab={coordinatorTab}
+        onNavigate={setActiveTab}
+        onLogout={handleLogout}
+      >
+        {notice}
+        <CoordinatorDashboard
+          displayName={loggedInUser.displayName}
+          homeCourse={loggedInUser.course}
+          tab={coordinatorTab}
+        />
+      </CoordinatorShell>
+    );
+  }
 
   if (!isTeacher) {
     return (

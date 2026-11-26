@@ -43,6 +43,7 @@ export default function Login({ onLogin }: LoginProps) {
   const passwordsMatch = confirmPassword.length > 0 && confirmPassword === password;
   const students = LISTED_PEOPLE.filter((item) => item.role === 'student');
   const teachers = LISTED_PEOPLE.filter((item) => item.role === 'teacher');
+  const coordinators = LISTED_PEOPLE.filter((item) => item.role === 'coordinator');
 
   const openFirstAccess = () => {
     setMode('register');
@@ -172,6 +173,11 @@ export default function Login({ onLogin }: LoginProps) {
                   Crie sua senha e<br />
                   <span className="text-[#c9d4ff]">entre como professor</span>
                 </>
+              ) : person?.role === 'coordinator' ? (
+                <>
+                  Crie sua senha e<br />
+                  <span className="text-[#c9d4ff]">abra o relatório do curso</span>
+                </>
               ) : (
                 <>
                   Crie sua senha e<br />
@@ -182,7 +188,9 @@ export default function Login({ onLogin }: LoginProps) {
             <p className="max-w-sm text-sm leading-relaxed text-white/75">
               {person?.role === 'teacher'
                 ? 'O acesso docente abre o banco de questões, as provas, o fórum e o painel do professor.'
-                : 'Banco de questões, simulados cronometrados, fórum de dúvidas e uma trilha que se adapta ao seu ritmo — tudo em um só lugar.'}
+                : person?.role === 'coordinator'
+                  ? 'A coordenação vê o erro agregado da turma e a participação dos professores, sem a nota de cada estudante.'
+                  : 'Banco de questões, simulados cronometrados, fórum de dúvidas e uma trilha que se adapta ao seu ritmo — tudo em um só lugar.'}
             </p>
 
             <div className="rounded-2xl bg-[#1b1148]/55 p-4 ring-1 ring-white/10 backdrop-blur-sm">
@@ -307,7 +315,7 @@ export default function Login({ onLogin }: LoginProps) {
                 <p className="mt-2 text-sm text-slate-500">
                   {mode === 'forgot'
                     ? 'Informe o e-mail da lista. A próxima tela pede o código de verificação enviado a esse e-mail institucional.'
-                    : 'Use o e-mail institucional que a universidade enviou. Aluno e professor entram por aqui.'}
+                    : 'Use o e-mail institucional que a universidade enviou. Aluno, professor e coordenação entram por aqui.'}
                 </p>
                 <form onSubmit={handleEmail} className="mt-7 space-y-4" noValidate>
                   <Labeled label="E-mail institucional">
@@ -327,7 +335,7 @@ export default function Login({ onLogin }: LoginProps) {
                     <ArrowRight className="h-4 w-4" />
                   </button>
                 </form>
-                <Directory students={students} teachers={teachers} onPick={(value) => { setEmail(value); setError(''); }} />
+                <Directory students={students} teachers={teachers} coordinators={coordinators} onPick={(value) => { setEmail(value); setError(''); }} />
               </>
             )}
 
@@ -452,7 +460,7 @@ export default function Login({ onLogin }: LoginProps) {
             <p className="mt-3 text-sm leading-relaxed text-slate-600">
               {legal === 'privacidade' && 'O primeiro acesso usa o e-mail da lista da universidade. A senha fica apenas neste navegador, nesta demonstração.'}
               {legal === 'termos' && 'A UniColab é um protótipo acadêmico para estudo do ENADE. O conteúdo serve para treino e não substitui o exame oficial.'}
-              {legal === 'ajuda' && 'Escolha um e-mail da lista sem senha, digite o código de verificação enviado a esse e-mail institucional e crie a senha. O aluno entra no fluxo do aluno e o professor no espaço do professor.'}
+              {legal === 'ajuda' && 'Escolha um e-mail da lista sem senha, digite o código de verificação enviado a esse e-mail institucional e crie a senha. O aluno entra no fluxo do aluno, o professor no espaço do professor e a coordenação no relatório do curso.'}
             </p>
             <button type="button" className="mt-5 h-10 rounded-xl bg-brand px-4 text-sm font-semibold text-white" onClick={() => setLegal(null)}>
               Fechar
@@ -467,16 +475,19 @@ export default function Login({ onLogin }: LoginProps) {
 function Directory({
   students,
   teachers,
+  coordinators,
   onPick,
 }: {
   students: ListedPerson[];
   teachers: ListedPerson[];
+  coordinators: ListedPerson[];
   onPick: (email: string) => void;
 }) {
   return (
     <div className="mt-6 space-y-3 text-xs text-slate-500">
       <Group title="Alunos" people={students} onPick={onPick} />
       <Group title="Professores" people={teachers} onPick={onPick} />
+      <Group title="Coordenação" people={coordinators} onPick={onPick} />
     </div>
   );
 }

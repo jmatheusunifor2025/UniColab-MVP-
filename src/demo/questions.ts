@@ -64,6 +64,14 @@ export function seedQuestions(): Question[] {
           text: 'Esse padrão aparece muito na conexão com o banco. Em várias threads a criação precisa ser sincronizada.',
           timestamp: '12/03/2026 14:32',
         },
+        {
+          id: 'c1b',
+          userName: 'Helena Duarte',
+          role: 'teacher',
+          text: 'A instância única precisa nascer uma vez só. Em várias threads, a criação fica protegida para que duas chamadas não abram duas conexões.',
+          timestamp: '13/03/2026 09:18',
+          helpfulBy: ['ana.costa@edu.unifor.br'],
+        },
       ],
     ),
     item(
@@ -185,6 +193,23 @@ export function seedQuestions(): Question[] {
       1,
       'TCP confirma, ordena e retransmite. UDP entrega datagramas sem essa garantia e cabe em usos que toleram perda, como algumas mídias em tempo real. Os dois ficam na camada de transporte.',
       'Kurose, J.; Ross, K. Redes de computadores e a internet.',
+      [
+        {
+          id: 'c7',
+          userName: 'Carla Mendes',
+          role: 'student',
+          text: 'No streaming a perda de um datagrama incomoda menos do que esperar a retransmissão. É esse o caso do UDP?',
+          timestamp: '04/04/2026 11:05',
+        },
+        {
+          id: 'c7b',
+          userName: 'Marina Alves',
+          role: 'teacher',
+          text: 'Sim. UDP cabe quando a aplicação tolera perda e prefere seguir. TCP segura a entrega e, por isso, aumenta a espera.',
+          timestamp: '04/04/2026 15:40',
+          helpfulBy: ['carla.mendes@edu.unifor.br'],
+        },
+      ],
     ),
     item(
       '8',
@@ -203,6 +228,15 @@ export function seedQuestions(): Question[] {
       1,
       'O pipeline divide a instrução em estágios e sobrepõe instruções. Desvios e dependências de dados reduzem o ganho, mas não desaparecem por causa do pipeline.',
       'Patterson, D.; Hennessy, J. Organização e projeto de computadores.',
+      [
+        {
+          id: 'c8',
+          userName: 'Carla Mendes',
+          role: 'student',
+          text: 'O desvio condicional esvazia o pipeline? Queria ver um exemplo curto antes do simulado.',
+          timestamp: '05/04/2026 19:12',
+        },
+      ],
     ),
     item(
       '9',
@@ -257,6 +291,23 @@ export function seedQuestions(): Question[] {
       1,
       'A distância grande entre o desempenho de treino e o de dados novos é o sinal clássico de overfitting. Regularização, mais dados e validação cruzada são respostas típicas.',
       'Géron, A. Mãos à obra: aprendizado de máquina com Scikit-Learn.',
+      [
+        {
+          id: 'c11',
+          userName: 'Bruno Lima',
+          role: 'student',
+          text: 'Separei treino e teste, mas o acerto do treino continua muito acima. Isso já caracteriza sobreajuste?',
+          timestamp: '06/04/2026 10:22',
+        },
+        {
+          id: 'c11b',
+          userName: 'Ricardo Nunes',
+          role: 'teacher',
+          text: 'Essa distância é o sinal. Antes de mudar a métrica, vale reduzir a complexidade do modelo e repetir a validação cruzada.',
+          timestamp: '06/04/2026 16:04',
+          helpfulBy: ['bruno.lima@edu.unifor.br'],
+        },
+      ],
     ),
     item(
       '12',
@@ -269,6 +320,15 @@ export function seedQuestions(): Question[] {
       2,
       'O mergesort divide a entrada ao meio e junta as metades ordenadas em tempo linear. A recorrência T(n) = 2T(n/2) + O(n) resolve para O(n log n), também no pior caso.',
       'Cormen, T. H. et al. Algoritmos: teoria e prática.',
+      [
+        {
+          id: 'c12',
+          userName: 'Ana Costa',
+          role: 'student',
+          text: 'O mergesort mantém O(n log n) no pior caso, mas eu ainda confundo com o quicksort quando o pivô é ruim.',
+          timestamp: '07/04/2026 08:47',
+        },
+      ],
     ),
     ...acervoQuestions(),
   ];

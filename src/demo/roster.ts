@@ -2,7 +2,7 @@ export interface ListedPerson {
   id: number;
   email: string;
   name: string;
-  role: 'student' | 'teacher';
+  role: 'student' | 'teacher' | 'coordinator';
   course: string;
   specialty?: string;
   enrollment: string;
@@ -66,6 +66,16 @@ export const LISTED_PEOPLE: ListedPerson[] = [
     specialty: 'Arquitetura de Computadores',
     enrollment: 'CNDB-20315',
     verificationCode: 'T8D4JQ',
+  },
+  {
+    id: 7,
+    email: 'lucia.ferreira@edu.unifor.br',
+    name: 'Lúcia Ferreira',
+    role: 'coordinator',
+    course: 'Análise e Desenvolvimento de Sistemas',
+    specialty: 'Coordenação de curso',
+    enrollment: 'COORD-1840',
+    verificationCode: 'H6K3WN',
   },
 ];
 
